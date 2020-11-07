@@ -11,6 +11,7 @@
 // constructor WITHOUT memory allocation
 ChatBot::ChatBot()
 {
+    std::cout << "ChatBot Constructor" << std::endl;
     // invalidate data handles
     _image = nullptr;
     _chatLogic = nullptr;
@@ -20,7 +21,7 @@ ChatBot::ChatBot()
 // constructor WITH memory allocation
 ChatBot::ChatBot(std::string filename)
 {
-    std::cout << "ChatBot Constructor" << std::endl;
+    std::cout << "ChatBot Constructor with image" << std::endl;
     
     // invalidate data handles
     _chatLogic = nullptr;
@@ -28,6 +29,54 @@ ChatBot::ChatBot(std::string filename)
 
     // load image into heap memory
     _image = new wxBitmap(filename, wxBITMAP_TYPE_PNG);
+}
+
+ChatBot::ChatBot(const ChatBot& other)
+{
+    std::cout << "ChatBot Copy Constructor" << std::endl;
+    if (other._image != NULL) _image = new wxBitmap(*other._image);
+    _chatLogic = other._chatLogic;
+    _rootNode = other._rootNode;
+}
+
+ChatBot::ChatBot(ChatBot&& other)
+{
+    std::cout << "ChatBot Move Constructor" << std::endl;
+    _image = other._image;
+    _chatLogic = other._chatLogic;
+    _rootNode = other._rootNode;
+
+    other._image = NULL;
+    other._chatLogic = nullptr;
+    other._rootNode = nullptr;
+}
+
+ChatBot& ChatBot::operator=(const ChatBot& other)
+{
+    std::cout << "ChatBot Copy Assignment" << std::endl;
+    if (this != &other)
+    {
+        if (other._image != NULL) _image = new wxBitmap(*other._image);
+        _chatLogic = other._chatLogic;
+        _rootNode = other._rootNode;
+    }
+    return *this;
+}
+
+ChatBot& ChatBot::operator=(ChatBot&& other)
+{
+    std::cout << "ChatBot Move Assignment" << std::endl;
+    if (this != &other)
+    {
+        _image = other._image;
+        _chatLogic = other._chatLogic;
+        _rootNode = other._rootNode;
+
+        other._image = NULL;
+        other._chatLogic = nullptr;
+        other._rootNode = nullptr;
+    }
+    return *this;
 }
 
 ChatBot::~ChatBot()
@@ -41,12 +90,6 @@ ChatBot::~ChatBot()
         _image = NULL;
     }
 }
-
-//// STUDENT CODE
-////
-
-////
-//// EOF STUDENT CODE
 
 void ChatBot::ReceiveMessageFromUser(std::string message)
 {
@@ -86,6 +129,7 @@ void ChatBot::SetCurrentNode(GraphNode *node)
 {
     // update pointer to current node
     _currentNode = node;
+    _chatLogic->SetChatbotHandle(this);
 
     // select a random node answer (if several answers should exist)
     std::vector<std::string> answers = _currentNode->GetAnswers();
@@ -95,6 +139,7 @@ void ChatBot::SetCurrentNode(GraphNode *node)
 
     // send selected node answer to user
     _chatLogic->SendMessageToUser(answer);
+
 }
 
 int ChatBot::ComputeLevenshteinDistance(std::string s1, std::string s2)
